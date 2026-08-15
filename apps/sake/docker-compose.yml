@@ -1,0 +1,120 @@
+services:
+  sake:
+    image: ghcr.io/sudashiii/sake:2026.7.10.1
+    container_name: sake-selfhost
+    environment:
+      - LIBSQL_URL=file:/data/sake.db
+      - LIBSQL_AUTH_TOKEN=${LIBSQL_AUTH_TOKEN}
+      - S3_ENDPOINT=${S3_ENDPOINT}
+      - S3_REGION=u${S3_REGION}
+      - S3_BUCKET=${S3_BUCKET}
+      - S3_ACCESS_KEY_ID=${S3_ADMIN_KEY_ID}
+      - S3_SECRET_ACCESS_KEY=${S3_SECRET_ACCESS_KEY}
+      - S3_FORCE_PATH_STYLE=${S3_FORCE_PATH_STYLE}
+      - VITE_ALLOWED_HOSTS=${VITE_ALLOWED_HOSTS}
+      - ACTIVATED_PROVIDERS=${ACTIVATED_PROVIDERS}
+      - ACTIVATED_METADATA_PROVIDERS=${ACTIVATED_METADATA_PROVIDERS}
+      - GOOGLE_BOOKS_API_KEY=${GOOGLE_BOOKS_API_KEY}
+      - HARDCOVER_API_TOKEN=${HARDCOVER_API_TOKEN}
+      - METADATA_PROVIDER_TIMEOUT_MS=${METADATA_PROVIDER_TIMEOUT_MS}
+      - BODY_SIZE_LIMIT=${BODY_SIZE_LIMIT}
+    depends_on:
+      seaweedfs-init:
+        condition: service_completed_successfully
+      sake-migrator:
+        condition: service_completed_successfully
+    volumes:
+      - '${APP_DATA_DIR}/data/libsql:/data'
+    x-runtipi:
+      is_main: true
+      internal_port: '3000'
+
+  sake-migrator:
+    image: ghcr.io/sudashiii/sake:2026.7.10.1
+    container_name: sake-selfhost-migrator
+    environment:
+      - LIBSQL_URL=file:/data/sake.db
+      - LIBSQL_AUTH_TOKEN=${LIBSQL_AUTH_TOKEN}
+      - S3_ENDPOINT=${S3_ENDPOINT}
+      - S3_REGION=u${S3_REGION}
+      - S3_BUCKET=${S3_BUCKET}
+      - S3_ACCESS_KEY_ID=${S3_ADMIN_KEY_ID}
+      - S3_SECRET_ACCESS_KEY=${S3_SECRET_ACCESS_KEY}
+      - S3_FORCE_PATH_STYLE=${S3_FORCE_PATH_STYLE}
+      - VITE_ALLOWED_HOSTS=${VITE_ALLOWED_HOSTS}
+      - ACTIVATED_PROVIDERS=${ACTIVATED_PROVIDERS}
+      - ACTIVATED_METADATA_PROVIDERS=${ACTIVATED_METADATA_PROVIDERS}
+      - GOOGLE_BOOKS_API_KEY=${GOOGLE_BOOKS_API_KEY}
+      - HARDCOVER_API_TOKEN=${HARDCOVER_API_TOKEN}
+      - METADATA_PROVIDER_TIMEOUT_MS=${METADATA_PROVIDER_TIMEOUT_MS}
+      - BODY_SIZE_LIMIT=${BODY_SIZE_LIMIT}
+    command: ["bun", "run", "db:migrate"]
+    volumes:
+      - '${APP_DATA_DIR}/data/libsql:/data'
+    restart: "no"
+
+  seaweedfs:
+    image: chrislusf/seaweedfs:4.17
+    container_name: sake-seaweedfs
+    entrypoint:
+      - /bin/sh
+      - -ec
+    command:
+      - |
+        mkdir -p /etc/seaweedfs
+        SEAWEEDFS_ACCESS_KEY="$${S3_ACCESS_KEY_ID:?missing S3_ACCESS_KEY_ID}"
+        SEAWEEDFS_SECRET_KEY="$${S3_SECRET_ACCESS_KEY:?missing S3_SECRET_ACCESS_KEY}"
+        cat >/etc/seaweedfs/s3.conf <<EOF
+        {
+          "identities": [
+            {
+              "name": "sake",
+              "credentials": [
+                {
+                  "accessKey": "$$SEAWEEDFS_ACCESS_KEY",
+                  "secretKey": "$$SEAWEEDFS_SECRET_KEY"
+                }
+              ],
+              "actions": ["Admin", "Read", "Write", "List", "Tagging"]
+            }
+          ]
+        }
+        EOF
+        exec weed server -dir=/data -ip=seaweedfs -ip.bind=0.0.0.0 -s3 -s3.port=8333 -s3.config=/etc/seaweedfs/s3.conf
+    environment:
+      - WEED_SERVER_VOLUME_MAX=0
+      - S3_ACCESS_KEY_ID=${S3_ACCESS_KEY_ID}
+      - S3_SECRET_ACCESS_KEY=${S3_SECRET_ACCESS_KEY}
+    ports:
+      - "8333:8333"
+      - "9333:9333"
+    volumes:
+      - '${APP_DATA_DIR}/data/seaweedfs:/data'
+
+  seaweedfs-init:
+    image: amazon/aws-cli:2.34.7
+    container_name: sake-seaweedfs-init
+    environment:
+      - S3_ENDPOINT=${S3_ENDPOINT}
+      - S3_REGION=${S3_REGION}
+      - S3_BUCKET=${S3_BUCKET}
+      - S3_ACCESS_KEY_ID=${S3_ADMIN_KEY_ID}
+      - S3_SECRET_ACCESS_KEY=${S3_SECRET_ACCESS_KEY}
+      - S3_FORCE_PATH_STYLE=${S3_FORCE_PATH_STYLE}
+    depends_on:
+      seaweedfs:
+        condition: service_started
+    entrypoint:
+      - /bin/sh
+      - -ec
+      - |
+        export AWS_ACCESS_KEY_ID="$${S3_ACCESS_KEY_ID:?missing S3_ACCESS_KEY_ID}"
+        export AWS_SECRET_ACCESS_KEY="$${S3_SECRET_ACCESS_KEY:?missing S3_SECRET_ACCESS_KEY}"
+        export AWS_DEFAULT_REGION="$${S3_REGION:-us-east-1}"
+        until aws --endpoint-url http://seaweedfs:8333 s3api list-buckets >/dev/null 2>&1; do
+          sleep 1
+        done
+        aws --endpoint-url http://seaweedfs:8333 s3api head-bucket --bucket "$${S3_BUCKET:-sake}" >/dev/null 2>&1 || \
+          aws --endpoint-url http://seaweedfs:8333 s3api create-bucket --bucket "$${S3_BUCKET:-sake}"
+    restart: "no"
+

@@ -1,0 +1,251 @@
+{
+  "schemaVersion": 2,
+  "services": [
+    {
+      "name": "sake-selfhost",
+      "image": "ghcr.io/sudashiii/sake:2026.7.10.1",
+      "environment": [
+        {
+          "key": "LIBSQL_URL",
+          "value": "file:/data/sake.db"
+        },
+        {
+          "key": "LIBSQL_AUTH_TOKEN",
+          "value": "${LIBSQL_AUTH_TOKEN}"
+        },
+        {
+          "key": "S3_ENDPOINT",
+          "value": "${S3_ENDPOINT}"
+        },
+        {
+          "key": "S3_REGION",
+          "value": "u${S3_REGION}"
+        },
+        {
+          "key": "S3_BUCKET",
+          "value": "${S3_BUCKET}"
+        },
+        {
+          "key": "S3_ACCESS_KEY_ID",
+          "value": "${S3_ADMIN_KEY_ID}"
+        },
+        {
+          "key": "S3_SECRET_ACCESS_KEY",
+          "value": "${S3_SECRET_ACCESS_KEY}"
+        },
+        {
+          "key": "S3_FORCE_PATH_STYLE",
+          "value": "${S3_FORCE_PATH_STYLE}"
+        },
+        {
+          "key": "VITE_ALLOWED_HOSTS",
+          "value": "${VITE_ALLOWED_HOSTS}"
+        },
+        {
+          "key": "ACTIVATED_PROVIDERS",
+          "value": "${ACTIVATED_PROVIDERS}"
+        },
+        {
+          "key": "ACTIVATED_METADATA_PROVIDERS",
+          "value": "${ACTIVATED_METADATA_PROVIDERS}"
+        },
+        {
+          "key": "GOOGLE_BOOKS_API_KEY",
+          "value": "${GOOGLE_BOOKS_API_KEY}"
+        },
+        {
+          "key": "HARDCOVER_API_TOKEN",
+          "value": "${HARDCOVER_API_TOKEN}"
+        },
+        {
+          "key": "METADATA_PROVIDER_TIMEOUT_MS",
+          "value": "${METADATA_PROVIDER_TIMEOUT_MS}"
+        },
+        {
+          "key": "BODY_SIZE_LIMIT",
+          "value": "${BODY_SIZE_LIMIT}"
+        }
+      ],
+      "volumes": [
+        {
+          "hostPath": "${APP_DATA_DIR}/data/libsql",
+          "containerPath": "/data",
+          "readOnly": false,
+          "shared": false,
+          "private": false
+        }
+      ],
+      "dependsOn": {
+        "seaweedfs-init": {
+          "condition": "service_completed_successfully"
+        },
+        "sake-migrator": {
+          "condition": "service_completed_successfully"
+        }
+      }
+    },
+    {
+      "name": "sake-selfhost-migrator",
+      "image": "ghcr.io/sudashiii/sake:2026.7.10.1",
+      "command": [
+        "bun",
+        "run",
+        "db:migrate"
+      ],
+      "environment": [
+        {
+          "key": "LIBSQL_URL",
+          "value": "file:/data/sake.db"
+        },
+        {
+          "key": "LIBSQL_AUTH_TOKEN",
+          "value": "${LIBSQL_AUTH_TOKEN}"
+        },
+        {
+          "key": "S3_ENDPOINT",
+          "value": "${S3_ENDPOINT}"
+        },
+        {
+          "key": "S3_REGION",
+          "value": "u${S3_REGION}"
+        },
+        {
+          "key": "S3_BUCKET",
+          "value": "${S3_BUCKET}"
+        },
+        {
+          "key": "S3_ACCESS_KEY_ID",
+          "value": "${S3_ADMIN_KEY_ID}"
+        },
+        {
+          "key": "S3_SECRET_ACCESS_KEY",
+          "value": "${S3_SECRET_ACCESS_KEY}"
+        },
+        {
+          "key": "S3_FORCE_PATH_STYLE",
+          "value": "${S3_FORCE_PATH_STYLE}"
+        },
+        {
+          "key": "VITE_ALLOWED_HOSTS",
+          "value": "${VITE_ALLOWED_HOSTS}"
+        },
+        {
+          "key": "ACTIVATED_PROVIDERS",
+          "value": "${ACTIVATED_PROVIDERS}"
+        },
+        {
+          "key": "ACTIVATED_METADATA_PROVIDERS",
+          "value": "${ACTIVATED_METADATA_PROVIDERS}"
+        },
+        {
+          "key": "GOOGLE_BOOKS_API_KEY",
+          "value": "${GOOGLE_BOOKS_API_KEY}"
+        },
+        {
+          "key": "HARDCOVER_API_TOKEN",
+          "value": "${HARDCOVER_API_TOKEN}"
+        },
+        {
+          "key": "METADATA_PROVIDER_TIMEOUT_MS",
+          "value": "${METADATA_PROVIDER_TIMEOUT_MS}"
+        },
+        {
+          "key": "BODY_SIZE_LIMIT",
+          "value": "${BODY_SIZE_LIMIT}"
+        }
+      ],
+      "volumes": [
+        {
+          "hostPath": "${APP_DATA_DIR}/data/libsql",
+          "containerPath": "/data",
+          "readOnly": false,
+          "shared": false,
+          "private": false
+        }
+      ]
+    },
+    {
+      "name": "sake-seaweedfs",
+      "image": "chrislusf/seaweedfs:4.17",
+      "command": [
+        "mkdir -p /etc/seaweedfs\nSEAWEEDFS_ACCESS_KEY=\"$${S3_ACCESS_KEY_ID:?missing S3_ACCESS_KEY_ID}\"\nSEAWEEDFS_SECRET_KEY=\"$${S3_SECRET_ACCESS_KEY:?missing S3_SECRET_ACCESS_KEY}\"\ncat >/etc/seaweedfs/s3.conf <<EOF\n{\n  \"identities\": [\n    {\n      \"name\": \"sake\",\n      \"credentials\": [\n        {\n          \"accessKey\": \"$$SEAWEEDFS_ACCESS_KEY\",\n          \"secretKey\": \"$$SEAWEEDFS_SECRET_KEY\"\n        }\n      ],\n      \"actions\": [\"Admin\", \"Read\", \"Write\", \"List\", \"Tagging\"]\n    }\n  ]\n}\nEOF\nexec weed server -dir=/data -ip=seaweedfs -ip.bind=0.0.0.0 -s3 -s3.port=8333 -s3.config=/etc/seaweedfs/s3.conf\n"
+      ],
+      "environment": [
+        {
+          "key": "WEED_SERVER_VOLUME_MAX",
+          "value": "0"
+        },
+        {
+          "key": "S3_ACCESS_KEY_ID",
+          "value": "${S3_ACCESS_KEY_ID}"
+        },
+        {
+          "key": "S3_SECRET_ACCESS_KEY",
+          "value": "${S3_SECRET_ACCESS_KEY}"
+        }
+      ],
+      "internalPort": 8333,
+      "addPorts": [
+        {
+          "containerPort": 9333,
+          "hostPort": 9333,
+          "tcp": true,
+          "udp": false
+        }
+      ],
+      "volumes": [
+        {
+          "hostPath": "${APP_DATA_DIR}/data/seaweedfs",
+          "containerPath": "/data",
+          "readOnly": false,
+          "shared": false,
+          "private": false
+        }
+      ],
+      "entrypoint": [
+        "/bin/sh",
+        "-ec"
+      ]
+    },
+    {
+      "name": "sake-seaweedfs-init",
+      "image": "amazon/aws-cli:2.34.7",
+      "environment": [
+        {
+          "key": "S3_ENDPOINT",
+          "value": "${S3_ENDPOINT}"
+        },
+        {
+          "key": "S3_REGION",
+          "value": "${S3_REGION}"
+        },
+        {
+          "key": "S3_BUCKET",
+          "value": "${S3_BUCKET}"
+        },
+        {
+          "key": "S3_ACCESS_KEY_ID",
+          "value": "${S3_ADMIN_KEY_ID}"
+        },
+        {
+          "key": "S3_SECRET_ACCESS_KEY",
+          "value": "${S3_SECRET_ACCESS_KEY}"
+        },
+        {
+          "key": "S3_FORCE_PATH_STYLE",
+          "value": "${S3_FORCE_PATH_STYLE}"
+        }
+      ],
+      "entrypoint": [
+        "/bin/sh",
+        "-ec",
+        "export AWS_ACCESS_KEY_ID=\"$${S3_ACCESS_KEY_ID:?missing S3_ACCESS_KEY_ID}\"\nexport AWS_SECRET_ACCESS_KEY=\"$${S3_SECRET_ACCESS_KEY:?missing S3_SECRET_ACCESS_KEY}\"\nexport AWS_DEFAULT_REGION=\"$${S3_REGION:-us-east-1}\"\nuntil aws --endpoint-url http://seaweedfs:8333 s3api list-buckets >/dev/null 2>&1; do\n  sleep 1\ndone\naws --endpoint-url http://seaweedfs:8333 s3api head-bucket --bucket \"$${S3_BUCKET:-sake}\" >/dev/null 2>&1 || \\\n  aws --endpoint-url http://seaweedfs:8333 s3api create-bucket --bucket \"$${S3_BUCKET:-sake}\"\n"
+      ],
+      "dependsOn": {
+        "seaweedfs": {
+          "condition": "service_started"
+        }
+      }
+    }
+  ]
+}
