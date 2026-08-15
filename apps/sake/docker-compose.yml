@@ -8,7 +8,7 @@ services:
       sake-migrator:
         condition: service_completed_successfully
     volumes:
-      - ../.data/selfhost/libsql:/data
+      - '${APP_DATA_DIR}/data/libsql:/data'
     x-runtipi:
       is_main: true
       internal_port: '3000'
@@ -34,7 +34,7 @@ services:
       - BODY_SIZE_LIMIT=${BODY_SIZE_LIMIT}
     command: ["bun", "run", "db:migrate"]
     volumes:
-      - ../.data/selfhost/libsql:/data
+      - '${APP_DATA_DIR}/data/libsql:/data'
     restart: "no"
 
   seaweedfs:
@@ -73,7 +73,7 @@ services:
       - "8333:8333"
       - "9333:9333"
     volumes:
-      - ../.data/selfhost/seaweedfs:/data
+      - '${APP_DATA_DIR}/data/seaweedfs:/data'
 
   seaweedfs-init:
     image: amazon/aws-cli:2.34.7
