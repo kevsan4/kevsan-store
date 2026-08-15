@@ -1,0 +1,99 @@
+{
+  "name": "Sake",
+  "id": "sake",
+  "available": true,
+  "short_desc": "Self-hosted ebook library with KOReader sync.",
+  "author": "Sudashiii",
+  "port": 5173,
+  "categories": [
+    "books"
+  ],
+  "description": "Self-hosted ebook library with KOReader sync, progress and notes synchronization, OPDS, WebDAV, and automatic book delivery.",
+  "tipi_version": 1,
+  "version": "1.1",
+  "source": "https://github.com/Sudashiii/Sake",
+  "exposable": true,
+  "supported_architectures": [
+    "arm64",
+    "amd64"
+  ],
+  "created_at": 1745082405284,
+  "updated_at": 1745674974072,
+  "dynamic_config": true,
+  "form_fields": [
+    {
+      "type": "text",
+      "label": "Activated providers (comma separated list)",
+      "required": false,
+      "default": "zlib,anna,openlib,gutenberg",
+      "env_variable": "ACTIVATED_PROVIDERS"
+    },
+    {
+      "type": "text",
+      "label": "Activated Metadata Providers",
+      "required": false,
+      "env_variable": "ACTIVATED_METADATA_PROVIDERS"
+    },
+    {
+      "type": "text",
+      "label": "Google Books API Key",
+      "required": false,
+      "env_variable": "GOOGLE_BOOKS_API_KEY"
+    },
+    {
+      "type": "text",
+      "label": "Hardcover API Token",
+      "required": false,
+      "env_variable": "HARDCOVER_API_TOKEN"
+    },
+    {
+      "type": "text",
+      "label": "Body Size Limit",
+      "required": true,
+      "default": "Infinity",
+      "env_variable": "BODY_SIZE_LIMIT"
+    },
+    {
+      "type": "text",
+      "label": "S3 Endpoint",
+      "required": true,
+      "default": "http://seaweedfs:8333",
+      "env_variable": "S3_ENDPOINT"
+    },
+    {
+      "type": "text",
+      "label": "S3 Region",
+      "required": true,
+      "default": "us-east-1",
+      "env_variable": "S3_REGION"
+    },
+    {
+      "type": "text",
+      "label": "S3 Bucket",
+      "required": true,
+      "default": "sake",
+      "env_variable": "S3_BUCKET"
+    },
+    {
+      "type": "text",
+      "label": "S3 Access Key ID",
+      "required": true,
+      "default": "sakeadmin",
+      "env_variable": "S3_ACCESS_KEY_ID"
+    },
+    {
+      "type": "text",
+      "label": "S3 Secret Access Key",
+      "required": true,
+      "default": "sakeadminsecret",
+      "env_variable": "S3_SECRET_ACCESS_KEY"
+    },
+    {
+      "type": "boolean",
+      "label": "S3 Force Path Style",
+      "required": true,
+      "default": true,
+      "env_variable": "S3_FORCE_PATH_STYLE"
+    }
+  ]
+}
