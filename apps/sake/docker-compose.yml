@@ -1,6 +1,6 @@
 services:
   sake:
-    image: ghcr.io/sudashiii/sake:latest
+    image: ghcr.io/sudashiii/sake:2026.7.10.1
     container_name: sake-selfhost
     depends_on:
       seaweedfs-init:
@@ -14,7 +14,7 @@ services:
       internal_port: '3000'
 
   sake-migrator:
-    image: ghcr.io/sudashiii/sake:latest
+    image: ghcr.io/sudashiii/sake:2026.7.10.1
     container_name: sake-selfhost-migrator
     environment:
       - LIBSQL_URL=file:/data/sake.db
