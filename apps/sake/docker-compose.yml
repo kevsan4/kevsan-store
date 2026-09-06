@@ -1,6 +1,6 @@
 services:
   sake:
-    image: ghcr.io/sudashiii/sake:2026.7.10.1
+    image: ghcr.io/sudashiii/sake:latest
     container_name: sake-selfhost
     environment:
       - LIBSQL_URL=file:/data/sake.db
@@ -31,15 +31,14 @@ services:
       - /bin/sh
       - -ec
     command:
-      - 'exec weed server -dir=/data -ip=seaweedfs -ip.bind=0.0.0.0 -s3 -s3.port=8333 -s3.config=/etc/seaweedfs/s3.conf'
+      - 'weed mini -dir=/data'
     environment:
       - WEED_SERVER_VOLUME_MAX=0
-      - S3_ACCESS_KEY_ID=${S3_ACCESS_KEY_ID}
-      - S3_SECRET_ACCESS_KEY=${S3_SECRET_ACCESS_KEY}
+      - AWS_ACCESS_KEY_ID=${S3_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${S3_SECRET_ACCESS_KEY}
     ports:
       - "8333:8333"
       - "9333:9333"
     volumes:
       - '${APP_DATA_DIR}/data/seaweedfs:/data'
-      - ./config:/etc/seaweedfs
 
