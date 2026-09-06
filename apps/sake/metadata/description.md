@@ -1,14 +1,10 @@
-<p align="center">
-  <img src="./sake-icon.svg" alt="Sake logo" width="120" height="120" />
-</p>
-
 <h1 align="center">Sake</h1>
 
 <p align="center">
   Self-host your reading stack with a clean web library, KOReader sync, and provider-powered book imports.
 </p>
 
-![Sake library page](./library.png)
+![Sake library page](https://raw.githubusercontent.com/Sudashiii/Sake/blob/master/docs/img/webapp/library.png)
 
 ## Why Sake?
 
