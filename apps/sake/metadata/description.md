@@ -4,8 +4,6 @@
   Self-host your reading stack with a clean web library, KOReader sync, and provider-powered book imports.
 </p>
 
-![Sake library page](https://raw.githubusercontent.com/Sudashiii/Sake/blob/master/docs/img/webapp/library.png)
-
 ## Why Sake?
 
 If you already use KOReader, Sake gives you a much nicer home base around it. You get a self-hosted web library, seamless progress sync, note-aware reading updates, easy book delivery to devices, and a built-in plugin update flow without losing the KOReader setup you already like.
