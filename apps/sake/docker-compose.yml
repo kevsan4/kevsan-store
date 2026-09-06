@@ -18,11 +18,25 @@ services:
       - HARDCOVER_API_TOKEN=${HARDCOVER_API_TOKEN}
       - METADATA_PROVIDER_TIMEOUT_MS=${METADATA_PROVIDER_TIMEOUT_MS}
       - BODY_SIZE_LIMIT=${BODY_SIZE_LIMIT}
+    depends_on:
+      sake-migrator:
+        condition: service_completed_successfully
     volumes:
       - '${APP_DATA_DIR}/data/libsql:/data'
     x-runtipi:
       is_main: true
       internal_port: '3000'
+
+  sake-migrator:
+    image: ghcr.io/sudashiii/sake:2026.7.10.1
+    container_name: sake-selfhost-migrator
+    environment:
+      - LIBSQL_URL=file:/data/sake.db
+      - LIBSQL_AUTH_TOKEN=
+    command: ["bun", "run", "db:migrate"]
+    volumes:
+      - '${APP_DATA_DIR}/data/libsql:/data'
+    restart: "no"
 
   seaweedfs:
     image: chrislusf/seaweedfs:4.17
