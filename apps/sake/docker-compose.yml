@@ -18,9 +18,6 @@ services:
       - HARDCOVER_API_TOKEN=${HARDCOVER_API_TOKEN}
       - METADATA_PROVIDER_TIMEOUT_MS=${METADATA_PROVIDER_TIMEOUT_MS}
       - BODY_SIZE_LIMIT=${BODY_SIZE_LIMIT}
-    depends_on:
-      sake-migrator:
-        condition: service_completed_successfully
     volumes:
       - '${APP_DATA_DIR}/data/libsql:/data'
     x-runtipi:
