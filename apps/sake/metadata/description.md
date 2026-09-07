@@ -82,3 +82,10 @@ In the app UI, open `Settings -> Logins`, then use `Connect Z-Library` and eithe
 - copy `remix_userid` and `remix_userkey` from your Z-Library cookies
 
 The app uses those session values for authenticated Z-Library requests.
+
+## Setup instructions
+
+After installing the Sake app, this command needs to be run to finish setting up the SQL database:
+
+```
+docker run --name sake-selfhost-migrator --rm --env-file ../sake/.env.docker.selfhosted -v ${APP_DATA_DIR}/data/libsql:/data ghcr.io/sudashiii/sake:latest bun run db:migrate

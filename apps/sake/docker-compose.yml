@@ -27,17 +27,6 @@ services:
       is_main: true
       internal_port: '3000'
 
-  sake-migrator:
-    image: ghcr.io/sudashiii/sake:latest
-    container_name: sake-selfhost-migrator
-    environment:
-      - LIBSQL_URL=file:/data/sake.db
-      - LIBSQL_AUTH_TOKEN=
-    command: ["bun", "run", "db:migrate"]
-    volumes:
-      - '${APP_DATA_DIR}/data/libsql:/data'
-    restart: "no"
-
   seaweedfs:
     image: chrislusf/seaweedfs:latest
     container_name: sake-seaweedfs
