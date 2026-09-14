@@ -55,6 +55,13 @@
     },
     {
       "type": "text",
+      "label": "LibSQL Auth Token",
+      "required": true,
+      "default": "",
+      "env_variable": "LIBSQL_AUTH_TOKEN"
+    },
+    {
+      "type": "text",
       "label": "S3 Endpoint",
       "required": true,
       "default": "http://seaweedfs:8333",
