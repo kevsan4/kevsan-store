@@ -88,4 +88,4 @@ The app uses those session values for authenticated Z-Library requests.
 After installing the Sake app, this command needs to be run to finish setting up the SQL database:
 
 ```
-docker run --name sake-selfhost-migrator --rm --env-file ../sake/.env.docker.selfhosted -v ${APP_DATA_DIR}/data/libsql:/data ghcr.io/sudashiii/sake:latest bun run db:migrate
+docker run --name sake-selfhost-migrator --rm --env-file {PATH_TO_RUNTIPI}/app-data/{STORE_NAME}/sake/app.env -e LIBSQL_URL=file:/data/sake.db -v ${APP_DATA_DIR}/data/libsql:/data ghcr.io/sudashiii/sake:latest bun run db:migrate
